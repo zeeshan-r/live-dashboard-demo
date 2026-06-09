@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<!-- saved from url=(0071)file:///C:/Users/Zeeshan%20Riaz/Downloads/campaign_dashboard_final.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q2 Performance Tracker — Live Dashboard</title>
+<link href="./Q2 Performance Tracker — Live Dashboard_files/css2" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #0d0d0d;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 24px;
+  }
+
+  .report {
+    display: flex;
+    width: 100%;
+    max-width: 1100px;
+    background: #161616;
+    border-radius: 14px;
+    border: 1px solid #2a2a2a;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    background: #111111;
+    border-right: 1px solid #222;
+    padding: 28px 18px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    color: #f0874a;
+    letter-spacing: -0.3px;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #222;
+  }
+  .sidebar-logo span { font-weight: 400; opacity: 0.55; }
+
+  .sidebar-section-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #3a3a3a;
+    margin-bottom: 12px;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 16px;
+  }
+
+  .filter-group label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #4a4a4a;
+  }
+
+  .filter-group select,
+  .filter-group input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: #bbb;
+    background: #1a1a1a;
+    border: 1px solid #2c2c2c;
+    border-radius: 6px;
+    padding: 6px 10px;
+    outline: none;
+    cursor: pointer;
+    width: 100%;
+    transition: border-color 0.15s;
+  }
+  .filter-group select:focus,
+  .filter-group input:focus { border-color: #f0874a44; }
+
+  .filter-group select {
+    padding-right: 24px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+  }
+
+  .sidebar-divider { height: 1px; background: #1e1e1e; margin: 8px 0 20px; }
+
+  .reset-btn {
+    margin-top: auto;
+    padding-top: 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #444;
+    background: transparent;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    padding: 7px 10px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+    letter-spacing: 0.03em;
+  }
+  .reset-btn:hover { color: #f0874a; border-color: #f0874a55; }
+
+  /* ── Main ── */
+  .main { flex: 1; padding: 28px 28px 32px; min-width: 0; }
+
+  .campaign-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #f0874a;
+    letter-spacing: -0.4px;
+    margin-bottom: 20px;
+  }
+  .campaign-title .date-range { font-size: 14px; font-weight: 500; opacity: 0.6; margin-left: 6px; }
+
+  /* ── KPI Grid ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .kpi-card {
+    background: #1e1e1e;
+    border: 1px solid #2c2c2c;
+    border-radius: 10px;
+    padding: 14px 16px 16px;
+    transition: border-color 0.2s;
+  }
+
+  .kpi-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+  .kpi-label { font-size: 9.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: #555; }
+  .kpi-target { font-size: 10px; color: #404040; }
+
+  .kpi-mid { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .kpi-value { font-size: 24px; font-weight: 700; color: #f0f0f0; letter-spacing: -0.6px; line-height: 1; }
+  .kpi-pct { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; color: #f0874a; }
+
+  .bar-track { position: relative; height: 6px; background: #2e2e2e; border-radius: 99px; margin-bottom: 6px; overflow: visible; }
+  .bar-fill { height: 100%; border-radius: 99px; background: #f0874a; max-width: 100%; transition: width 0.4s ease; }
+  .bar-axis { display: flex; justify-content: space-between; font-size: 9.5px; color: #333; font-family: 'DM Mono', monospace; }
+
+  /* ── Breakdown toggle ── */
+  .breakdown-controls { display: flex; align-items: center; margin-bottom: 12px; gap: 10px; }
+  .breakdown-controls-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #404040; }
+
+  .toggle-group { display: flex; background: #1a1a1a; border: 1px solid #272727; border-radius: 7px; padding: 3px; gap: 2px; }
+  .toggle-btn { font-family: 'DM Sans', sans-serif; font-size: 11.5px; font-weight: 600; padding: 4px 14px; border: none; border-radius: 5px; cursor: pointer; color: #555; background: transparent; transition: background 0.15s, color 0.15s; user-select: none; }
+  .toggle-btn.active { background: #2a2a2a; color: #f0f0f0; }
+  .toggle-btn:hover:not(.active) { color: #888; }
+
+  /* ── Breakdown panels ── */
+  .breakdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .breakdown-card { background: #1e1e1e; border: 1px solid #2c2c2c; border-radius: 10px; padding: 16px 18px 18px; }
+
+  .breakdown-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 13px; }
+  .breakdown-title { font-size: 9.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: #555; }
+  .breakdown-total-target { font-size: 10.5px; color: #404040; }
+
+  .region-row { margin-bottom: 9px; }
+  .region-row:last-child { margin-bottom: 0; }
+
+  .region-meta { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; gap: 8px; }
+  .region-name { font-size: 12px; color: #ccc; font-weight: 500; min-width: 68px; white-space: nowrap; }
+  .region-right { display: flex; align-items: baseline; gap: 7px; flex-shrink: 0; }
+  .region-value { font-size: 12.5px; font-weight: 700; color: #f0f0f0; font-family: 'DM Mono', monospace; }
+  .region-tgt { font-size: 10.5px; color: #404040; font-family: 'DM Mono', monospace; }
+  .region-pct { font-size: 11.5px; font-weight: 700; font-family: 'DM Mono', monospace; min-width: 46px; text-align: right; }
+
+  .pct-green { color: #4caf7d; }
+  .pct-amber { color: #e6b84a; }
+  .pct-red   { color: #e05555; }
+
+  .region-bar-track { height: 5px; background: #2a2a2a; border-radius: 99px; overflow: hidden; }
+  .region-bar-fill { height: 100%; border-radius: 99px; transition: width 0.35s ease; }
+  .fill-green { background: #4caf7d; }
+  .fill-amber { background: #e6b84a; }
+  .fill-red   { background: #e05555; }
+
+  .total-row { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding-top: 11px; border-top: 1px solid #242424; gap: 10px; }
+  .total-value { font-size: 13px; font-weight: 700; color: #f0f0f0; font-family: 'DM Mono', monospace; flex-shrink: 0; min-width: 80px; }
+  .total-bar-track { flex: 1; height: 5px; background: #2a2a2a; border-radius: 99px; overflow: hidden; }
+  .total-bar-fill { height: 100%; border-radius: 99px; background: #4caf7d; transition: width 0.4s ease; }
+  .total-pct { font-size: 12.5px; font-weight: 700; font-family: 'DM Mono', monospace; color: #4caf7d; flex-shrink: 0; min-width: 46px; text-align: right; }
+
+  .rows-container { transition: opacity 0.18s ease; }
+  .rows-container.fading { opacity: 0; }
+
+  /* no-data state */
+  .no-data { font-size: 12px; color: #444; text-align: center; padding: 24px 0; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="report">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">Dashboard <span>Live</span></div>
+    <div class="sidebar-section-label">Filters</div>
+
+    <div class="filter-group">
+      <label>Region</label>
+      <select id="f-region">
+        <option value="all">All</option>
+        <option value="Market A">Market A</option>
+        <option value="Market B">Market B</option>
+        <option value="Market C">Market C</option>
+        <option value="Market D">Market D</option>
+        <option value="Market E">Market E</option>
+        <option value="Market F">Market F</option>
+        <option value="Market G">Market G</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Channel</label>
+      <select id="f-channel">
+        <option value="all">All</option>
+        <option value="Direct">Direct</option>
+        <option value="Organic">Organic</option>
+        <option value="Paid">Paid</option>
+        <option value="Partner">Partner</option>
+        <option value="Referral">Referral</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Product</label>
+      <select id="f-product">
+        <option value="all">All</option>
+        <option value="Product A">Product A</option>
+        <option value="Product B">Product B</option>
+        <option value="Product C">Product C</option>
+      </select>
+    </div>
+
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Date Range</div>
+
+    <div class="filter-group">
+      <label>From</label>
+      <input type="date" id="f-from" value="2026-04-01" disabled="">
+    </div>
+    <div class="filter-group">
+      <label>To</label>
+      <input type="date" id="f-to" value="2026-06-30" disabled="">
+    </div>
+
+    <button class="reset-btn" id="reset-btn">↺ Reset filters</button>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="campaign-title">
+      Q2 Performance Tracker
+      <span class="date-range" id="date-label">(Apr 1 – Jun 30)</span>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Orders</span>
+          <span class="kpi-target" id="kpi-orders-tgt">Target: 10,996</span>
+        </div>
+        <div class="kpi-mid">
+          <span class="kpi-value" id="kpi-orders-val">18,356</span>
+          <span class="kpi-pct" id="kpi-orders-pct">166.9%</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="kpi-orders-bar" style="width: 100%; background: rgb(240, 135, 74);"></div></div>
+        <div class="bar-axis"><span id="kpi-orders-axis0">0</span><span id="kpi-orders-axis1">10,996</span></div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Revenue</span>
+          <span class="kpi-target" id="kpi-rev-tgt">Target: $362,903</span>
+        </div>
+        <div class="kpi-mid">
+          <span class="kpi-value" id="kpi-rev-val">$610,421</span>
+          <span class="kpi-pct" id="kpi-rev-pct">168.2%</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="kpi-rev-bar" style="width: 100%; background: rgb(240, 135, 74);"></div></div>
+        <div class="bar-axis"><span>$0</span><span id="kpi-rev-axis1">$362,903</span></div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Avg. Order Value</span>
+          <span class="kpi-target" id="kpi-ads-tgt">Target: $33</span>
+        </div>
+        <div class="kpi-mid">
+          <span class="kpi-value" id="kpi-ads-val">$33.25</span>
+          <span class="kpi-pct" id="kpi-ads-pct">100.8%</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="kpi-ads-bar" style="width: 100%; background: rgb(240, 135, 74);"></div></div>
+        <div class="bar-axis"><span>$0</span><span id="kpi-ads-axis1">$33</span></div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Quarter Progress</span>
+          <span class="kpi-target" id="kpi-prog-tgt">Total: 91 days</span>
+        </div>
+        <div class="kpi-mid">
+          <span class="kpi-value" id="kpi-prog-val">Day 65</span>
+          <span class="kpi-pct" id="kpi-prog-pct">71.4%</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="kpi-prog-bar" style="width: 71.4%;"></div></div>
+        <div class="bar-axis"><span>Day 1</span><span id="kpi-prog-axis1">Day 91</span></div>
+      </div>
+    </div>
+
+    <!-- Toggle -->
+    <div class="breakdown-controls">
+      <span class="breakdown-controls-label">Break down by</span>
+      <div class="toggle-group">
+        <button class="toggle-btn active" data-view="region">Region</button>
+        <button class="toggle-btn" data-view="channel">Channel</button>
+      </div>
+    </div>
+
+    <!-- Breakdown panels -->
+    <div class="breakdown-grid">
+      <div class="breakdown-card">
+        <div class="breakdown-header">
+          <span class="breakdown-title" id="orders-title">Orders by Region vs Target</span>
+          <span class="breakdown-total-target" id="orders-subtarget">Target to date: 10,996</span>
+        </div>
+        <div class="rows-container" id="orders-rows"><div class="region-row">
+      <div class="region-meta">
+        <span class="region-name">Market A</span>
+        <div class="region-right">
+          <span class="region-value">11,214</span>
+          <span class="region-tgt">TGT 6,487</span>
+          <span class="region-pct pct-green">172.9%</span>
+        </div>
+      </div>
+      <div class="region-bar-track" style="background:transparent">
+        <div class="region-bar-fill fill-green" style="width:100.0%"></div>
+      </div>
+    </div><div class="region-row">
+      <div class="region-meta">
+        <span class="region-name">Market B</span>
+        <div class="region-right">
+          <span class="region-value">4,934</span>
+          <span class="region-tgt">TGT 2,299</span>
+          <span class="region-pct pct-green">214.6%</span>
+        </div>
+      </div>
+      <div class="region-bar-track" style="background:transparent">
+        <div class="region-bar-fill fill-green" style="width:100.0%"></div>
+      </div>
+    </div><div class="region-row">
+      <div class="region-meta">
+        <span class="region-name">Market C</span>
+        <div class="region-right">
+          <span class="region-value">1,158</span>
+          <span class="region-tgt">TGT 1,391</span>
+          <span class="region-pct pct-amber">83.2%</span>
+        </div>
+      </div>
+      <div class="region-bar-track" style="">
+        <div class="region-bar-fill fill-amber" style="width:83.2%"></div>
+      </div>
+    </div><div class="region-row">
+      <div class="region-meta">
+        <span class="region-name">Market D</span>
+        <div class="region-right">
+          <span class="region-value">777</span>
+          <span class="region-tgt">TGT 502</span>
+          <span class="region-pct pct-green">154.8%</span>
+        </div>
+      </div>
+      <div class="region-bar-track" style="background:transparent">
+        <div class="region-bar-fill fill-green" style="width:100.0%"></div>
+      </div>
+    </div><div class="region-row">
+      <div class="region-meta">
+        <span class="region-name">Market E</span>
+        <div class="region-right">
+          <span class="region-value">115</span>
+          <span class="region-tgt">TGT 228</span>
+          <span class="region-pct pct-red">50.4%</span>
+        </div>
+      </div>
+      <div class="region-bar-track" style="">
+        <div class="region-bar-fill fill-red" style="width:50.4%"></div>
+      </div>
+    </div><div class="region-row">
+      <div class="region-meta">
+        <span class="region-name">Market F</span>
+        <div class="region-right">
+          <span class="region-value">94</span>
+          <span class="region-tgt">TGT 52</span>
+          <span class="region-pct pct-green">180.8%</span>
+        </div>
+      </div>
+      <div class="region-bar-track" style="background:transparent">
+        <div class="region-bar-fill fill-green" style="width:100.0%"></div>
+      </div>
+    </div><div class="region-row">
+      <div class="region-meta">
+        <span class="region-name">Market G</span>
+        <div class="region-right">
+          <span class="region-value">64</span>
+          <span class="region-tgt">TGT 37</span>
+          <span class="region-pct pct-green">173.0%</span>
+        </div>
+      </div>
+      <div class="region-bar-track" style="background:transparent">
+        <div class="region-bar-fill fill-green" style="width:100.0%"></div>
+      </div>
+    </div></div>
+        <div class="total-row">
+          <span class="total-value" id="orders-total">18,356</span>
+          <div class="total-bar-track"><div class="total-bar-fill" id="orders-totalbar" style="width: 100%; background: rgb(76, 175, 125);"></div></div>
+          <span class="total-pct" id="orders-totalpct">166.9%</span>
+        </div>
+      </div>
+
+      <div class="breakdown-card">
+        <div class="breakdown-header">
+          <span class="breakdown-title" id="revenue-title">Revenue by Region vs Target</span>
+          <span class="breakdown-total-target" id="revenue-subtarget">Target to date: $362,903</span>
+        </div>
+        <div class="rows-container" id="revenue-rows"><div class="region-row">
+      <div class="region-meta">
+        <span class="region-name">Market A</span>
+        <div class="region-right">
+          <span class="region-value">$369,193</span>
+          <span class="region-tgt">TGT $214,102</span>
+          <span class="region-pct pct-green">172.4%</span>
+        </div>
+      </div>
+      <div class="region-bar-track" style="background:transparent">
+        <div class="region-bar-fill fill-green" style="width:100.0%"></div>
+      </div>
+    </div><div class="region-row">
+      <div class="region-meta">
+        <span class="region-name">Market B</span>
+        <div class="region-right">
+          <span class="region-value">$166,744</span>
+          <span class="region-tgt">TGT $75,869</span>
+          <span class="region-pct pct-green">219.8%</span>
+        </div>
+      </div>
+      <div class="region-bar-track" style="background:transparent">
+        <div class="region-bar-fill fill-green" style="width:100.0%"></div>
+      </div>
+    </div><div class="region-row">
+      <div class="region-meta">
+        <span class="region-name">Market C</span>
+        <div class="region-right">
+          <span class="region-value">$35,924</span>
+          <span class="region-tgt">TGT $45,914</span>
+          <span class="region-pct pct-amber">78.2%</span>
+        </div>
+      </div>
+      <div class="region-bar-track" style="">
+        <div class="region-bar-fill fill-amber" style="width:78.2%"></div>
+      </div>
+    </div><div class="region-row">
+      <div class="region-meta">
+        <span class="region-name">Market D</span>
+        <div class="region-right">
+          <span class="region-value">$28,101</span>
+          <span class="region-tgt">TGT $16,556</span>
+          <span class="region-pct pct-green">169.7%</span>
+        </div>
+      </div>
+      <div class="region-bar-track" style="background:transparent">
+        <div class="region-bar-fill fill-green" style="width:100.0%"></div>
+      </div>
+    </div><div class="region-row">
+      <div class="region-meta">
+        <span class="region-name">Market E</span>
+        <div class="region-right">
+          <span class="region-value">$4,499</span>
+          <span class="region-tgt">TGT $7,530</span>
+          <span class="region-pct pct-red">59.7%</span>
+        </div>
+      </div>
+      <div class="region-bar-track" style="">
+        <div class="region-bar-fill fill-red" style="width:59.7%"></div>
+      </div>
+    </div><div class="region-row">
+      <div class="region-meta">
+        <span class="region-name">Market F</span>
+        <div class="region-right">
+          <span class="region-value">$3,781</span>
+          <span class="region-tgt">TGT $1,727</span>
+          <span class="region-pct pct-green">218.9%</span>
+        </div>
+      </div>
+      <div class="region-bar-track" style="background:transparent">
+        <div class="region-bar-fill fill-green" style="width:100.0%"></div>
+      </div>
+    </div><div class="region-row">
+      <div class="region-meta">
+        <span class="region-name">Market G</span>
+        <div class="region-right">
+          <span class="region-value">$2,179</span>
+          <span class="region-tgt">TGT $1,205</span>
+          <span class="region-pct pct-green">180.8%</span>
+        </div>
+      </div>
+      <div class="region-bar-track" style="background:transparent">
+        <div class="region-bar-fill fill-green" style="width:100.0%"></div>
+      </div>
+    </div></div>
+        <div class="total-row">
+          <span class="total-value" id="revenue-total">$610,421</span>
+          <div class="total-bar-track"><div class="total-bar-fill" id="revenue-totalbar" style="width: 100%; background: rgb(76, 175, 125);"></div></div>
+          <span class="total-pct" id="revenue-totalpct">168.2%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Raw data ─────────────────────────────────────────────────────────────────
+const RAW = [
+  { region:'Market A', channel:'Direct',   product:'Product A', orders:3200, ordTgt:1900, rev:112000, revTgt:65000,  startDay:1,  endDay:91 },
+  { region:'Market A', channel:'Organic',  product:'Product B', orders:2800, ordTgt:1800, rev:98000,  revTgt:62000,  startDay:1,  endDay:91 },
+  { region:'Market A', channel:'Paid',     product:'Product A', orders:2100, ordTgt:1300, rev:74000,  revTgt:45000,  startDay:1,  endDay:91 },
+  { region:'Market A', channel:'Partner',  product:'Product C', orders:1900, ordTgt:1000, rev:62000,  revTgt:32000,  startDay:1,  endDay:91 },
+  { region:'Market A', channel:'Referral', product:'Product B', orders:1214, ordTgt:487,  rev:23193,  revTgt:10102,  startDay:1,  endDay:91 },
+  { region:'Market B', channel:'Direct',   product:'Product A', orders:1500, ordTgt:700,  rev:50000,  revTgt:22000,  startDay:1,  endDay:91 },
+  { region:'Market B', channel:'Organic',  product:'Product B', orders:1300, ordTgt:620,  rev:44000,  revTgt:20000,  startDay:1,  endDay:91 },
+  { region:'Market B', channel:'Paid',     product:'Product C', orders:1100, ordTgt:520,  rev:38000,  revTgt:18000,  startDay:1,  endDay:91 },
+  { region:'Market B', channel:'Partner',  product:'Product A', orders:634,  ordTgt:259,  rev:20744,  revTgt:9869,   startDay:1,  endDay:91 },
+  { region:'Market B', channel:'Referral', product:'Product B', orders:400,  ordTgt:200,  rev:14000,  revTgt:6000,   startDay:1,  endDay:91 },
+  { region:'Market C', channel:'Direct',   product:'Product C', orders:320,  ordTgt:400,  rev:10000,  revTgt:13000,  startDay:1,  endDay:91 },
+  { region:'Market C', channel:'Organic',  product:'Product A', orders:280,  ordTgt:350,  rev:8500,   revTgt:11000,  startDay:1,  endDay:91 },
+  { region:'Market C', channel:'Paid',     product:'Product B', orders:240,  ordTgt:320,  rev:7300,   revTgt:10000,  startDay:1,  endDay:91 },
+  { region:'Market C', channel:'Partner',  product:'Product C', orders:200,  ordTgt:210,  rev:6124,   revTgt:7914,   startDay:1,  endDay:91 },
+  { region:'Market C', channel:'Referral', product:'Product A', orders:118,  ordTgt:111,  rev:4000,   revTgt:4000,   startDay:1,  endDay:91 },
+  { region:'Market D', channel:'Direct',   product:'Product B', orders:220,  ordTgt:150,  rev:8000,   revTgt:5000,   startDay:1,  endDay:91 },
+  { region:'Market D', channel:'Organic',  product:'Product A', orders:190,  ordTgt:130,  rev:7000,   revTgt:4500,   startDay:1,  endDay:91 },
+  { region:'Market D', channel:'Paid',     product:'Product C', orders:160,  ordTgt:110,  rev:6000,   revTgt:3800,   startDay:1,  endDay:91 },
+  { region:'Market D', channel:'Referral', product:'Product B', orders:207,  ordTgt:112,  rev:7101,   revTgt:3256,   startDay:1,  endDay:91 },
+  { region:'Market E', channel:'Direct',   product:'Product A', orders:35,   ordTgt:70,   rev:1400,   revTgt:2350,   startDay:1,  endDay:91 },
+  { region:'Market E', channel:'Organic',  product:'Product C', orders:30,   ordTgt:60,   rev:1100,   revTgt:2000,   startDay:1,  endDay:91 },
+  { region:'Market E', channel:'Paid',     product:'Product B', orders:25,   ordTgt:55,   rev:980,    revTgt:1800,   startDay:1,  endDay:91 },
+  { region:'Market E', channel:'Referral', product:'Product A', orders:25,   ordTgt:43,   rev:1019,   revTgt:1380,   startDay:1,  endDay:91 },
+  { region:'Market F', channel:'Organic',  product:'Product C', orders:50,   ordTgt:28,   rev:2000,   revTgt:900,    startDay:1,  endDay:91 },
+  { region:'Market F', channel:'Direct',   product:'Product A', orders:44,   ordTgt:24,   rev:1781,   revTgt:827,    startDay:1,  endDay:91 },
+  { region:'Market G', channel:'Direct',   product:'Product B', orders:35,   ordTgt:20,   rev:1200,   revTgt:660,    startDay:1,  endDay:91 },
+  { region:'Market G', channel:'Organic',  product:'Product C', orders:29,   ordTgt:17,   rev:979,    revTgt:545,    startDay:1,  endDay:91 },
+];
+
+// ── Campaign config ───────────────────────────────────────────────────────────
+const CAMPAIGN_START = new Date('2026-04-01');
+const CAMPAIGN_END   = new Date('2026-06-30');
+const TOTAL_DAYS     = 91;
+const TODAY          = new Date('2026-06-05');
+const DAYS_ELAPSED   = Math.min(Math.round((TODAY - CAMPAIGN_START) / 86400000), TOTAL_DAYS);
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const fmt  = n => n >= 1000 ? n.toLocaleString('en-US', {maximumFractionDigits:0}) : n.toLocaleString('en-US', {maximumFractionDigits:2});
+const fmtD = n => '$' + fmt(n);
+const pct  = (a,b) => b ? a/b : 0;
+const pctS = (a,b) => (pct(a,b)*100).toFixed(1) + '%';
+const clr  = p => p >= 1 ? 'green' : p >= 0.75 ? 'amber' : 'red';
+const barW = p => Math.min(p * 100, 100).toFixed(1);
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let currentView = 'region';
+
+function getFilters() {
+  return {
+    region:  document.getElementById('f-region').value,
+    channel: document.getElementById('f-channel').value,
+    product: document.getElementById('f-product').value,
+    from:    new Date(document.getElementById('f-from').value),
+    to:      new Date(document.getElementById('f-to').value),
+  };
+}
+
+function filterData(f) {
+  return RAW.filter(r => {
+    if (f.region  !== 'all' && r.region  !== f.region)  return false;
+    if (f.channel !== 'all' && r.channel !== f.channel) return false;
+    if (f.product !== 'all' && r.product !== f.product) return false;
+    return true;
+  });
+}
+
+function sumField(rows, field) { return rows.reduce((a,r) => a + r[field], 0); }
+
+// ── Date label ────────────────────────────────────────────────────────────────
+function updateDateLabel() {
+  const f = getFilters();
+  const opts = { month:'short', day:'numeric' };
+  const from = f.from.toLocaleDateString('en-US', opts);
+  const to   = f.to.toLocaleDateString('en-US', opts);
+  document.getElementById('date-label').textContent = `(${from} – ${to})`;
+}
+
+// ── KPI Cards ─────────────────────────────────────────────────────────────────
+function updateKPIs(rows) {
+  const orders    = sumField(rows, 'orders');
+  const ordTgt    = sumField(rows, 'ordTgt');
+  const rev       = sumField(rows, 'rev');
+  const revTgt    = sumField(rows, 'revTgt');
+  const ads       = orders ? rev / orders : 0;
+  const adsTgt    = ordTgt ? revTgt / ordTgt : 0;
+  const ordPct    = pct(orders, ordTgt);
+  const revPct    = pct(rev, revTgt);
+  const adsPct    = pct(ads, adsTgt);
+  const progPct   = pct(DAYS_ELAPSED, TOTAL_DAYS);
+
+  // Orders
+  document.getElementById('kpi-orders-val').textContent  = fmt(orders);
+  document.getElementById('kpi-orders-tgt').textContent  = 'Target: ' + fmt(ordTgt);
+  document.getElementById('kpi-orders-pct').textContent  = pctS(orders, ordTgt);
+  document.getElementById('kpi-orders-bar').style.width  = barW(ordPct) + '%';
+  document.getElementById('kpi-orders-axis0').textContent = '0';
+  document.getElementById('kpi-orders-axis1').textContent = fmt(ordTgt);
+  document.getElementById('kpi-orders-bar').style.background = ordPct >= 1 ? '#f0874a' : ordPct >= 0.75 ? '#e6b84a' : '#e05555';
+
+  // Revenue
+  document.getElementById('kpi-rev-val').textContent   = fmtD(rev);
+  document.getElementById('kpi-rev-tgt').textContent   = 'Target: ' + fmtD(revTgt);
+  document.getElementById('kpi-rev-pct').textContent   = pctS(rev, revTgt);
+  document.getElementById('kpi-rev-bar').style.width   = barW(revPct) + '%';
+  document.getElementById('kpi-rev-axis1').textContent = fmtD(revTgt);
+  document.getElementById('kpi-rev-bar').style.background = revPct >= 1 ? '#f0874a' : revPct >= 0.75 ? '#e6b84a' : '#e05555';
+
+  // Avg Deal Size
+  document.getElementById('kpi-ads-val').textContent   = fmtD(ads);
+  document.getElementById('kpi-ads-tgt').textContent   = 'Target: ' + fmtD(adsTgt);
+  document.getElementById('kpi-ads-pct').textContent   = pctS(ads, adsTgt);
+  document.getElementById('kpi-ads-bar').style.width   = barW(adsPct) + '%';
+  document.getElementById('kpi-ads-axis1').textContent = fmtD(adsTgt);
+  document.getElementById('kpi-ads-bar').style.background = adsPct >= 1 ? '#f0874a' : adsPct >= 0.75 ? '#e6b84a' : '#e05555';
+
+  // Quarter Progress — always static, unaffected by filters
+  document.getElementById('kpi-prog-val').textContent  = 'Day ' + DAYS_ELAPSED;
+  document.getElementById('kpi-prog-pct').textContent  = pctS(DAYS_ELAPSED, TOTAL_DAYS);
+  document.getElementById('kpi-prog-bar').style.width  = barW(progPct) + '%';
+}
+
+// ── Breakdown rows ────────────────────────────────────────────────────────────
+function groupBy(rows, key, valField, tgtField) {
+  const map = {};
+  rows.forEach(r => {
+    const k = r[key];
+    if (!map[k]) map[k] = { val:0, tgt:0 };
+    map[k].val += r[valField];
+    map[k].tgt += r[tgtField];
+  });
+  return Object.entries(map).map(([name, d]) => ({ name, val:d.val, tgt:d.tgt }))
+    .sort((a,b) => b.val - a.val);
+}
+
+function renderRows(containerId, groups, prefix) {
+  const el = document.getElementById(containerId);
+  if (!groups.length) { el.innerHTML = '<div class="no-data">No data for current filters</div>'; return; }
+  el.innerHTML = groups.map(g => {
+    const p = pct(g.val, g.tgt);
+    const c = clr(p);
+    const w = barW(p);
+    const bg = p >= 1 ? 'background:transparent' : '';
+    return `<div class="region-row">
+      <div class="region-meta">
+        <span class="region-name">${g.name}</span>
+        <div class="region-right">
+          <span class="region-value">${prefix}${fmt(g.val)}</span>
+          <span class="region-tgt">TGT ${prefix}${fmt(g.tgt)}</span>
+          <span class="region-pct pct-${c}">${pctS(g.val, g.tgt)}</span>
+        </div>
+      </div>
+      <div class="region-bar-track" style="${bg}">
+        <div class="region-bar-fill fill-${c}" style="width:${w}%"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateBreakdowns(rows, view) {
+  const key = view === 'region' ? 'region' : 'channel';
+
+  // Orders
+  const ordGroups = groupBy(rows, key, 'orders', 'ordTgt');
+  const ordTotal  = sumField(rows, 'orders');
+  const ordTgtTot = sumField(rows, 'ordTgt');
+  const ordPctTot = pct(ordTotal, ordTgtTot);
+
+  document.getElementById('orders-title').textContent     = `Orders by ${view === 'region' ? 'Region' : 'Channel'} vs Target`;
+  document.getElementById('orders-subtarget').textContent = `Target to date: ${fmt(ordTgtTot)}`;
+  document.getElementById('orders-total').textContent     = fmt(ordTotal);
+  document.getElementById('orders-totalpct').textContent  = pctS(ordTotal, ordTgtTot);
+  document.getElementById('orders-totalbar').style.width  = barW(ordPctTot) + '%';
+  document.getElementById('orders-totalbar').style.background = clr(ordPctTot) === 'green' ? '#4caf7d' : clr(ordPctTot) === 'amber' ? '#e6b84a' : '#e05555';
+
+  const oContainer = document.getElementById('orders-rows');
+  oContainer.classList.add('fading');
+  setTimeout(() => { renderRows('orders-rows', ordGroups, ''); oContainer.classList.remove('fading'); }, 180);
+
+  // Revenue
+  const revGroups = groupBy(rows, key, 'rev', 'revTgt');
+  const revTotal  = sumField(rows, 'rev');
+  const revTgtTot = sumField(rows, 'revTgt');
+  const revPctTot = pct(revTotal, revTgtTot);
+
+  document.getElementById('revenue-title').textContent     = `Revenue by ${view === 'region' ? 'Region' : 'Channel'} vs Target`;
+  document.getElementById('revenue-subtarget').textContent = `Target to date: ${fmtD(revTgtTot)}`;
+  document.getElementById('revenue-total').textContent     = fmtD(revTotal);
+  document.getElementById('revenue-totalpct').textContent  = pctS(revTotal, revTgtTot);
+  document.getElementById('revenue-totalbar').style.width  = barW(revPctTot) + '%';
+  document.getElementById('revenue-totalbar').style.background = clr(revPctTot) === 'green' ? '#4caf7d' : clr(revPctTot) === 'amber' ? '#e6b84a' : '#e05555';
+
+  const rContainer = document.getElementById('revenue-rows');
+  rContainer.classList.add('fading');
+  setTimeout(() => { renderRows('revenue-rows', revGroups, '$'); rContainer.classList.remove('fading'); }, 180);
+}
+
+// ── Main render ───────────────────────────────────────────────────────────────
+function render() {
+  const f    = getFilters();
+  const rows = filterData(f);
+  updateDateLabel();
+  updateKPIs(rows);
+  updateBreakdowns(rows, currentView);
+}
+
+// ── Event listeners ───────────────────────────────────────────────────────────
+['f-region','f-channel','f-product','f-from','f-to'].forEach(id => {
+  document.getElementById(id).addEventListener('change', render);
+});
+
+document.querySelectorAll('.toggle-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentView = btn.dataset.view;
+    render();
+  });
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  document.getElementById('f-region').value  = 'all';
+  document.getElementById('f-channel').value = 'all';
+  document.getElementById('f-product').value = 'all';
+  document.getElementById('f-from').value    = '2026-04-01';
+  document.getElementById('f-to').value      = '2026-06-30';
+  render();
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+render();
+</script>
+
+
+</body></html>
